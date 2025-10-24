@@ -83,7 +83,7 @@ async def get_reviews(
         }
     }
 
-@router.get("/reviews/{review_id}", response_model=ReviewResponse)
+@router.get("/reviews/{review_id}")
 async def get_review(review_id: int, db: Session = Depends(get_db)):
     """특정 리뷰 상세 조회"""
     review = db.query(Review).filter(Review.id == review_id).first()
@@ -124,7 +124,10 @@ async def get_review(review_id: int, db: Session = Depends(get_db)):
         "images_detail": images
     }
     
-    return ReviewResponse(success=True, data=review_data)
+    return {
+        "success": True,
+        "data": review_data
+    }
 
 @router.post("/reviews", response_model=dict)
 async def create_review(
