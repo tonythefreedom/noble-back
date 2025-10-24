@@ -379,7 +379,121 @@ echo ""
 echo "📚 자세한 설정은 prod.md 파일을 참고하세요."
 ```
 
-#### 2. 설치 스크립트 실행
+## 🗑️ 완전 제거 및 재설치
+
+### 1. 자동 제거 스크립트
+
+#### 제거 스크립트 다운로드 및 실행
+```bash
+# 제거 스크립트 다운로드
+curl -O https://raw.githubusercontent.com/tonythefreedom/noble-back/main/uninstall.sh
+chmod +x uninstall.sh
+
+# 완전 제거 실행
+sudo ./uninstall.sh
+```
+
+#### 제거되는 항목
+- ✅ **서비스**: `noble-back` 서비스 중지 및 삭제
+- ✅ **프로젝트**: `/opt/noble-back` 디렉토리 완전 삭제
+- ✅ **Nginx**: 사이트 설정 파일 삭제
+- ✅ **로그**: 관련 로그 파일 삭제
+
+### 2. 수동 제거 명령어
+
+#### 단계별 제거
+```bash
+# 1. 서비스 중지 및 삭제
+sudo systemctl stop noble-back
+sudo systemctl disable noble-back
+sudo rm -f /etc/systemd/system/noble-back.service
+sudo systemctl daemon-reload
+
+# 2. Nginx 설정 삭제
+sudo rm -f /etc/nginx/sites-enabled/noble-back
+sudo rm -f /etc/nginx/sites-available/noble-back
+sudo systemctl reload nginx
+
+# 3. 프로젝트 디렉토리 삭제
+sudo rm -rf /opt/noble-back
+
+# 4. 로그 파일 삭제
+sudo rm -f /var/log/nginx/noble-back.*
+```
+
+### 3. 완전 재설치
+
+#### 제거 후 재설치
+```bash
+# 1. 완전 제거
+sudo ./uninstall.sh
+
+# 2. 새로 설치
+curl -O https://raw.githubusercontent.com/tonythefreedom/noble-back/main/install.sh
+chmod +x install.sh
+sudo ./install.sh
+```
+
+#### 한 번에 제거 및 재설치
+```bash
+# 제거 후 즉시 재설치
+curl -s https://raw.githubusercontent.com/tonythefreedom/noble-back/main/uninstall.sh | sudo bash
+curl -s https://raw.githubusercontent.com/tonythefreedom/noble-back/main/install.sh | sudo bash
+```
+
+### 4. 수동 정리가 필요한 항목
+
+#### 방화벽 규칙 (필요시)
+```bash
+# UFW 규칙 확인
+sudo ufw status
+
+# 규칙 제거 (필요시)
+sudo ufw delete allow 80/tcp
+sudo ufw delete allow 443/tcp
+```
+
+#### SSL 인증서 (필요시)
+```bash
+# Let's Encrypt 인증서 제거
+sudo certbot delete --cert-name your-domain.com
+```
+
+#### Python 패키지 (필요시)
+```bash
+# 시스템 Python 패키지 정리
+pip freeze > requirements_backup.txt
+pip uninstall -r requirements.txt
+```
+
+## 🔄 개발 환경 관리
+
+### 리뷰 데이터 삭제
+```bash
+# 서버 중지
+pkill -f uvicorn
+
+# 리뷰 데이터만 삭제 (관리자 계정 유지)
+source venv/bin/activate && python clear_reviews.py
+
+# 서버 재시작
+source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+### 데이터베이스 초기화
+```bash
+# 서버 중지
+pkill -f uvicorn
+
+# 데이터베이스 완전 초기화
+rm -f database/reviews.db
+source venv/bin/activate && python init_database.py
+
+# 서버 재시작
+source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+## 📋 설치 스크립트 실행
 ```bash
 # 스크립트 다운로드 및 실행
 curl -O https://raw.githubusercontent.com/tonythefreedom/noble-back/main/install.sh
