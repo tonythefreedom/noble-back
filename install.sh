@@ -11,36 +11,47 @@ echo "🚀 Noble Storage Review App 백엔드 설치를 시작합니다..."
 echo "📦 시스템 패키지 업데이트 중..."
 sudo apt update && sudo apt upgrade -y
 
-# 2. 필수 패키지 설치
-echo "🔧 필수 패키지 설치 중..."
-sudo apt install -y python3.12 python3.12-venv python3.12-dev python3-pip nginx git curl
+# 2. Python 3.12 설치 (deadsnakes PPA 사용)
+echo "🐍 Python 3.12 설치 중..."
+sudo apt install -y software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install -y python3.12 python3.12-venv python3.12-dev python3.12-distutils
 
-# 3. 프로젝트 디렉토리 생성
+# 3. pip 설치
+echo "📦 pip 설치 중..."
+curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
+
+# 4. 필수 패키지 설치
+echo "🔧 필수 패키지 설치 중..."
+sudo apt install -y nginx git curl build-essential
+
+# 5. 프로젝트 디렉토리 생성
 echo "📁 프로젝트 디렉토리 설정 중..."
 PROJECT_DIR="/opt/noble-back"
 sudo mkdir -p $PROJECT_DIR
 sudo chown $USER:$USER $PROJECT_DIR
 
-# 4. 프로젝트 클론 (GitHub에서)
+# 6. 프로젝트 클론 (GitHub에서)
 echo "📥 프로젝트 코드 다운로드 중..."
 cd $PROJECT_DIR
 git clone https://github.com/tonythefreedom/noble-back.git .
 
-# 5. Python 가상환경 설정
+# 7. Python 가상환경 설정
 echo "🐍 Python 가상환경 설정 중..."
 python3.12 -m venv venv
 source venv/bin/activate
 
-# 6. 의존성 설치
+# 8. 의존성 설치
 echo "📚 Python 패키지 설치 중..."
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# 7. 데이터베이스 초기화
+# 9. 데이터베이스 초기화
 echo "🗄️ 데이터베이스 초기화 중..."
 python init_database.py
 
-# 8. Nginx 설정
+# 10. Nginx 설정
 echo "🌐 Nginx 설정 중..."
 sudo tee /etc/nginx/sites-available/noble-back > /dev/null <<EOF
 upstream fastapi_backend {
@@ -90,18 +101,18 @@ server {
 }
 EOF
 
-# 9. Nginx 사이트 활성화
+# 11. Nginx 사이트 활성화
 echo "🔗 Nginx 사이트 활성화 중..."
 sudo ln -sf /etc/nginx/sites-available/noble-back /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 
-# 10. Nginx 설정 테스트 및 재시작
+# 12. Nginx 설정 테스트 및 재시작
 echo "✅ Nginx 설정 테스트 중..."
 sudo nginx -t
 sudo systemctl restart nginx
 sudo systemctl enable nginx
 
-# 11. 시스템 서비스 설정
+# 13. 시스템 서비스 설정
 echo "⚙️ 시스템 서비스 설정 중..."
 sudo tee /etc/systemd/system/noble-back.service > /dev/null <<EOF
 [Unit]
@@ -123,20 +134,20 @@ RestartSec=3
 WantedBy=multi-user.target
 EOF
 
-# 12. 서비스 시작
+# 14. 서비스 시작
 echo "🚀 서비스 시작 중..."
 sudo systemctl daemon-reload
 sudo systemctl enable noble-back
 sudo systemctl start noble-back
 
-# 13. 방화벽 설정
+# 15. 방화벽 설정
 echo "🔥 방화벽 설정 중..."
 sudo ufw allow 22/tcp
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw --force enable
 
-# 14. 설치 완료 확인
+# 16. 설치 완료 확인
 echo "✅ 설치 완료 확인 중..."
 sleep 5
 
