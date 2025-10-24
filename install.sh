@@ -11,16 +11,45 @@ echo "🚀 Noble Storage Review App 백엔드 설치를 시작합니다..."
 echo "📦 시스템 패키지 업데이트 중..."
 sudo apt update && sudo apt upgrade -y
 
-# 2. Python 3.12 설치 (deadsnakes PPA 사용)
+# 2. Python 3.12 설치 (여러 방법 시도)
 echo "🐍 Python 3.12 설치 중..."
+
+# 방법 1: deadsnakes PPA 시도
+echo "📦 deadsnakes PPA 추가 중..."
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update
-sudo apt install -y python3.12 python3.12-venv python3.12-dev python3.12-distutils
+
+# Python 3.12 설치 시도
+if sudo apt install -y python3.12 python3.12-venv python3.12-dev python3.12-distutils; then
+    echo "✅ Python 3.12 설치 성공 (deadsnakes PPA)"
+    PYTHON_CMD="python3.12"
+else
+    echo "⚠️ deadsnakes PPA 실패, 시스템 Python 사용"
+    # 시스템에 설치된 Python 버전 확인
+    if command -v python3.11 &> /dev/null; then
+        PYTHON_CMD="python3.11"
+        echo "✅ Python 3.11 사용"
+    elif command -v python3.10 &> /dev/null; then
+        PYTHON_CMD="python3.10"
+        echo "✅ Python 3.10 사용"
+    elif command -v python3.9 &> /dev/null; then
+        PYTHON_CMD="python3.9"
+        echo "✅ Python 3.9 사용"
+    else
+        PYTHON_CMD="python3"
+        echo "✅ 기본 Python3 사용"
+    fi
+    
+    # 필요한 패키지 설치
+    sudo apt install -y python3-venv python3-dev python3-distutils
+fi
 
 # 3. pip 설치
 echo "📦 pip 설치 중..."
-curl -sS https://bootstrap.pypa.io/get-pip.py | python3.12
+if ! $PYTHON_CMD -m pip --version &> /dev/null; then
+    curl -sS https://bootstrap.pypa.io/get-pip.py | $PYTHON_CMD
+fi
 
 # 4. 필수 패키지 설치
 echo "🔧 필수 패키지 설치 중..."
@@ -39,7 +68,7 @@ git clone https://github.com/tonythefreedom/noble-back.git .
 
 # 7. Python 가상환경 설정
 echo "🐍 Python 가상환경 설정 중..."
-python3.12 -m venv venv
+$PYTHON_CMD -m venv venv
 source venv/bin/activate
 
 # 8. 의존성 설치
