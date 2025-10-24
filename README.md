@@ -493,6 +493,18 @@ source venv/bin/activate && python init_database.py
 source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+### 더미 데이터 생성 (개발/테스트용)
+```bash
+# 서버 중지
+pkill -f uvicorn
+
+# 더미 데이터 생성 (50개 리뷰)
+source venv/bin/activate && python create_dummy_data.py
+
+# 서버 재시작
+source venv/bin/activate && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
 ## 📋 설치 스크립트 실행
 ```bash
 # 스크립트 다운로드 및 실행
