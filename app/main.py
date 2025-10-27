@@ -1,10 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
 from app.api import auth, reviews, images
 from app.database import engine
 from app.models import User, Review, ReviewImage, AdminSession
 from app.config import settings
+
 import os
 
 # FastAPI 앱 생성
@@ -14,12 +19,14 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS 설정 - 개발 환경용
+# CORS 설정 (로컬 테스트 포트 포함, 프로덕션 도메인 허용)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://noblestorage.co.kr",
+        "https://www.noblestorage.co.kr",
         "http://localhost:3000",
-        "http://localhost:5173", 
+        "http://localhost:5173",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
         "http://localhost:8080",
@@ -27,11 +34,39 @@ app.add_middleware(
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["*"],
+    allow_headers=[
+        "*",
+        "Authorization",
+        "If-Modified-Since",
+        "Cache-Control",
+        "Content-Type",
+        "Range"
+    ],
+    expose_headers=["Content-Length", "Content-Range"]
 )
 
+# 항상 JSON 응답을 보장하는 예외 핸들러 (API 경로에 한함)
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"success": False, "detail": exc.detail}, status_code=exc.status_code)
+    return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"success": False, "detail": exc.errors()}, status_code=422)
+    return JSONResponse({"error": exc.errors()}, status_code=422)
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    if request.url.path.startswith("/api/"):
+        return JSONResponse({"success": False, "detail": "internal server error"}, status_code=500)
+    return JSONResponse({"error": "internal server error"}, status_code=500)
+
 # 정적 파일 서빙 (업로드된 이미지)
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+_uploads_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "uploads"))
+app.mount("/uploads", StaticFiles(directory=_uploads_dir), name="uploads")
 
 # API 라우터 등록
 app.include_router(auth.router, prefix="/api/auth", tags=["인증"])
@@ -47,15 +82,14 @@ async def startup_event():
     
     # 기본 관리자 계정 생성
     from app.database import SessionLocal
-    from app.models.user import User
+    from app.models.user import User as UserModel
     from app.core.security import get_password_hash
     
     db = SessionLocal()
     try:
-        # 기본 관리자 계정이 없으면 생성
-        admin_user = db.query(User).filter(User.username == "tony").first()
+        admin_user = db.query(UserModel).filter(UserModel.username == "tony").first()
         if not admin_user:
-            admin_user = User(
+            admin_user = UserModel(
                 username="tony",
                 password_hash=get_password_hash("test0723"),
                 role="admin"
