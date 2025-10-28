@@ -1,0 +1,21 @@
+[0;1;32m●[0m nginx.service - A high performance web server and a reverse proxy server
+     Loaded: loaded (/lib/systemd/system/nginx.service; enabled; vendor preset: enabled)
+     Active: [0;1;32mactive (running)[0m since Tue 2025-10-28 14:30:06 KST; 4min 53s ago
+       Docs: man:nginx(8)
+    Process: 116743 ExecStartPre=/usr/sbin/nginx -t -q -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+    Process: 116744 ExecStart=/usr/sbin/nginx -g daemon on; master_process on; (code=exited, status=0/SUCCESS)
+   Main PID: 116745 (nginx)
+      Tasks: 5 (limit: 4653)
+     Memory: 8.0M
+        CPU: 106ms
+     CGroup: /system.slice/nginx.service
+             ├─116745 "nginx: master process /usr/sbin/nginx -g daemon on; master_process on;"
+             ├─116746 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─116747 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             ├─116748 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+             └─116749 "nginx: worker process" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" "" ""
+
+Oct 28 14:30:06 noblestorage1.cafe24.com systemd[1]: Stopped A high performance web server and a reverse proxy server.
+Oct 28 14:30:06 noblestorage1.cafe24.com systemd[1]: nginx.service: Consumed 41.904s CPU time.
+Oct 28 14:30:06 noblestorage1.cafe24.com systemd[1]: Starting A high performance web server and a reverse proxy server...
+Oct 28 14:30:06 noblestorage1.cafe24.com systemd[1]: Started A high performance web server and a reverse proxy server.
